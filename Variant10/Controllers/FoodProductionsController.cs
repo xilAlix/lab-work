@@ -121,22 +121,5 @@ namespace Variant10.wwwroot
         {
             return _context.FoodProductions.Any(e => e.firmId == firmId && e.productId == productId && e.productionVolume == productionVolume);
         }
-
-
-        // GET: api/FoodProductions/muchFirms
-        [HttpGet("muchFirms")]
-        public async Task<IEnumerable<FoodProduction>> GetFrequentFirms()
-        {
-            var frequentFirmIds = from fp in _context.FoodProductions
-                                  group fp by fp.firmId into g
-                                  where g.Count() > 3
-                                  select g.Key;
-
-            var frequentFirmsProductions = from fp in _context.FoodProductions
-                                           where frequentFirmIds.Contains(fp.firmId)
-                                           select fp;
-
-            return await frequentFirmsProductions.ToListAsync();
-        }
     }
 }

@@ -126,17 +126,5 @@ namespace Variant10.Controllers
         {
             return _context.FoodProducts.Any(e => e.id == id);
         }
-
-
-        // GET: api/FoodProducts/breadMade
-        [HttpGet("breadMade")]
-        public async Task<IEnumerable<FoodProduct>> GetBreadMade()
-        {
-            var bakeryProducts = from p in _context.FoodProducts
-                                 where p.productGroup == "Хлебобулочные"
-                                 select p;
-
-            return await bakeryProducts.ToListAsync();
-        }
     }
 }
