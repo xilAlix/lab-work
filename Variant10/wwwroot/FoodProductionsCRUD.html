@@ -1,0 +1,50 @@
+<!--https://localhost:7284/FoodProductionsCRUD.html-->
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление производством продуктов</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>Управление производством продуктов</h1>
+
+    <!-- Форма добавления/редактирования -->
+    <div class="form-card">
+        <h2 id="form-title">Добавить запись о производстве</h2>
+        <input type="hidden" id="original-firmId">
+        <input type="hidden" id="original-productId">
+        <input type="number" id="firmId" placeholder="Код фирмы (firmId)" required>
+        <input type="number" id="productId" placeholder="Код продукта (productId)" required>
+        <input type="number" step="0.01" id="productionVolume" placeholder="Объём производства" required>
+        <button id="submit-btn">Добавить</button>
+        <button id="cancel-btn" style="display:none;">Отмена</button>
+    </div>
+
+    <!-- Блок статистики -->
+    <div class="stats-card">
+        <h2>Статистика</h2>
+        <p>Всего записей о производстве: <span id="total-count">0</span></p>
+        <p>Средний объём производства: <span id="avg-volume">0</span></p>
+    </div>
+
+    <!-- Таблица с данными -->
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>Код фирмы</th>
+                <th>Код продукта</th>
+                <th>Объём производства</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+
+    <div id="error-message" class="error hidden"></div>
+
+    <script src="js/FoodProductionsCRUD.js"></script>
+</body>
+</html>

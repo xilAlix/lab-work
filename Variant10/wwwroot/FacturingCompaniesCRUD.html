@@ -1,0 +1,50 @@
+<!--https://localhost:7284/FacturingCompaniesCRUD.html-->
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление фирмами-производителями</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>Управление фирмами-производителями</h1>
+
+    <!-- Форма добавления/редактирования -->
+    <div class="form-card">
+        <h2 id="form-title">Добавить фирму</h2>
+        <input type="hidden" id="edit-id">
+        <input type="text" id="firmName" placeholder="Название фирмы" required>
+        <input type="text" id="adress" placeholder="Адрес" required>
+        <input type="text" id="directorSurname" placeholder="Фамилия директора">
+        <button id="submit-btn">Добавить</button>
+        <button id="cancel-btn" style="display:none;">Отмена</button>
+    </div>
+
+    <!-- Блок статистики -->
+    <div class="stats-card">
+        <h2>Статистика</h2>
+        <p>Всего фирм: <span id="total-count">0</span></p>
+        <p>С указанным директором: <span id="director-count">0</span></p>
+    </div>
+
+    <!-- Таблица с данными -->
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Адрес</th>
+                <th>Директор</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+
+    <div id="error-message" class="error hidden"></div>
+
+    <script src="js/FacturingCompaniesCRUD.js"></script>
+</body>
+</html>
