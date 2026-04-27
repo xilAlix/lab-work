@@ -75,12 +75,10 @@ public partial class ProductContext : DbContext
 
             entity.HasOne(d => d.firmIdNavigation).WithMany(p => p.FoodProductions)
                 .HasForeignKey(d => d.firmId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK-Firmid-Firmid");
 
             entity.HasOne(d => d.productIdNavigation).WithMany(p => p.FoodProductions)
                 .HasForeignKey(d => d.productId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK-Productid-Id");
         });
 
