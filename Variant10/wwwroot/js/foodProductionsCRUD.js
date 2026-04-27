@@ -40,68 +40,68 @@ function clearForm() {
 }
 
 // ---- Статистика ----
-async function updateStats() {
-    try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error('Не удалось загрузить статистику');
-        const data = await response.json();
-        totalSpan.textContent = data.length;
-        if (data.length > 0) {
-            const sum = data.reduce((acc, cur) => acc + cur.productionVolume, 0);
-            avgVolumeSpan.textContent = (sum / data.length).toFixed(2);
-        } else {
-            avgVolumeSpan.textContent = '0';
-        }
-    } catch (err) {
-        console.error('Ошибка статистики:', err);
+function updateStats(items) {
+    totalSpan.textContent = items.length;
+    if (items.length > 0) {
+        const sum = items.reduce((acc, cur) => acc + cur.productionVolume, 0);
+        avgVolumeSpan.textContent = (sum / items.length).toFixed(2);
+    }
+    else {
+        avgVolumeSpan.textContent = '0';
     }
 }
 
 // ---- Отрисовка таблицы ----
-async function renderTable() {
+function renderTable(items) {
+    tbody.innerHTML = ''; // очистка
+
+    items.forEach(item => {
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = item.firmId;
+        row.insertCell(1).textContent = item.productId;
+        row.insertCell(2).textContent = item.productionVolume;
+
+        const actionsCell = row.insertCell(3);
+        //const editBtn = document.createElement('button');
+        //editBtn.textContent = '✏️';
+        //editBtn.title = 'Редактировать';
+        //editBtn.onclick = () => {
+        //    currentFirmId = item.firmId;
+        //    currentProductId = item.productId;
+        //    currentVolume = item.productionVolume;
+        //    firmIdInput.value = item.firmId;
+        //    productIdInput.value = item.productId;
+        //    productionVolumeInput.value = item.productionVolume;
+
+        //    firmIdInput.disabled = true;
+        //    productIdInput.disabled = true;
+        //    productionVolumeInput.disabled = true;
+
+        //    formTitle.textContent = 'Редактировать запись';
+        //    submitBtn.textContent = 'Сохранить';
+        //    cancelBtn.style.display = 'inline-block';
+        //};
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '🗑️';
+        deleteBtn.title = 'Удалить';
+        deleteBtn.onclick = () => deleteItem(item.firmId, item.productId, item.productionVolume);
+
+        //actionsCell.appendChild(editBtn);
+        actionsCell.appendChild(deleteBtn);
+    });
+}
+
+// ---- Запрос ----
+async function loadData() {
     try {
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const items = await response.json();
-        tbody.innerHTML = ''; // очистка
 
-        items.forEach(item => {
-            const row = tbody.insertRow();
-            row.insertCell(0).textContent = item.firmId;
-            row.insertCell(1).textContent = item.productId;
-            row.insertCell(2).textContent = item.productionVolume;
-
-            const actionsCell = row.insertCell(3);
-            //const editBtn = document.createElement('button');
-            //editBtn.textContent = '✏️';
-            //editBtn.title = 'Редактировать';
-            //editBtn.onclick = () => {
-            //    currentFirmId = item.firmId;
-            //    currentProductId = item.productId;
-            //    currentVolume = item.productionVolume;
-            //    firmIdInput.value = item.firmId;
-            //    productIdInput.value = item.productId;
-            //    productionVolumeInput.value = item.productionVolume;
-
-            //    firmIdInput.disabled = true;
-            //    productIdInput.disabled = true;
-            //    productionVolumeInput.disabled = true;
-
-            //    formTitle.textContent = 'Редактировать запись';
-            //    submitBtn.textContent = 'Сохранить';
-            //    cancelBtn.style.display = 'inline-block';
-            //};
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = '🗑️';
-            deleteBtn.title = 'Удалить';
-            deleteBtn.onclick = () => deleteItem(item.firmId, item.productId, item.productionVolume);
-
-            //actionsCell.appendChild(editBtn);
-            actionsCell.appendChild(deleteBtn);
-        });
-
-        await updateStats();
+        renderTable(items);
+        updateStats(items);
+        errorDiv.classList.add('hidden');
     } catch (err) {
         showError(`Ошибка загрузки: ${err.message}`);
     }
@@ -140,7 +140,7 @@ async function createItem() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         clearForm();
-        await renderTable();
+        await loadData();
         return true;
     } catch (err) {
         showError(`Не удалось добавить: ${err.message}`);
@@ -176,7 +176,7 @@ async function updateItem(firmId, productId, volume) {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         clearForm();
-        await renderTable();
+        await loadData();
         return true;
     } catch (err) {
         showError(`Ошибка обновления: ${err.message}`);
@@ -197,7 +197,7 @@ async function deleteItem(firmId, productId, volume) {
             throw new Error(`HTTP ${response.status}`);
         }
 
-        await renderTable();
+        await loadData();
     } catch (err) {
         showError(`Ошибка удаления: ${err.message}`);
     }
@@ -222,4 +222,4 @@ submitBtn.addEventListener('click', onSubmit);
 cancelBtn.addEventListener('click', onCancel);
 
 // Загружаем данные при старте
-renderTable();
+loadData();
