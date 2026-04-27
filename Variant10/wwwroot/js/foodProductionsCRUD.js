@@ -72,32 +72,32 @@ async function renderTable() {
             row.insertCell(2).textContent = item.productionVolume;
 
             const actionsCell = row.insertCell(3);
-            const editBtn = document.createElement('button');
-            editBtn.textContent = '✏️';
-            editBtn.title = 'Редактировать';
-            editBtn.onclick = () => {
-                currentFirmId = item.firmId;
-                currentProductId = item.productId;
-                currentVolume = item.productionVolume;
-                firmIdInput.value = item.firmId;
-                productIdInput.value = item.productId;
-                productionVolumeInput.value = item.productionVolume;
+            //const editBtn = document.createElement('button');
+            //editBtn.textContent = '✏️';
+            //editBtn.title = 'Редактировать';
+            //editBtn.onclick = () => {
+            //    currentFirmId = item.firmId;
+            //    currentProductId = item.productId;
+            //    currentVolume = item.productionVolume;
+            //    firmIdInput.value = item.firmId;
+            //    productIdInput.value = item.productId;
+            //    productionVolumeInput.value = item.productionVolume;
 
-                firmIdInput.disabled = true;
-                productIdInput.disabled = true;
-                productionVolumeInput.disabled = true;
+            //    firmIdInput.disabled = true;
+            //    productIdInput.disabled = true;
+            //    productionVolumeInput.disabled = true;
 
-                formTitle.textContent = 'Редактировать запись';
-                submitBtn.textContent = 'Сохранить';
-                cancelBtn.style.display = 'inline-block';
-            };
+            //    formTitle.textContent = 'Редактировать запись';
+            //    submitBtn.textContent = 'Сохранить';
+            //    cancelBtn.style.display = 'inline-block';
+            //};
 
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = '🗑️';
             deleteBtn.title = 'Удалить';
             deleteBtn.onclick = () => deleteItem(item.firmId, item.productId, item.productionVolume);
 
-            actionsCell.appendChild(editBtn);
+            //actionsCell.appendChild(editBtn);
             actionsCell.appendChild(deleteBtn);
         });
 
