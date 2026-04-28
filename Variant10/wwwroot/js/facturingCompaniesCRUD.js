@@ -15,6 +15,7 @@ const totalSpan = document.getElementById('total-count');
 const directorSpan = document.getElementById('director-count');
 
 let currentEditId = null;
+let cachedFirms = [];
 
 // ---- Вспомогательные функции ----
 function showError(text) {
@@ -35,86 +36,76 @@ function clearForm() {
 }
 
 // ---- Статистика ----
-async function updateStats() {
-    try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error('Не удалось загрузить статистику');
-        const data = await response.json();
-        totalSpan.textContent = data.length;
-        const withDirector = data.filter(a => a.directorSurname && a.directorSurname.trim() !== '');
-        directorSpan.textContent = withDirector.length;
-    } catch (err) {
-        console.error('Ошибка статистики:', err);
-    }
+function updateStats(items) {
+    totalSpan.textContent = items.length;
+    const withDirector = items.filter(f => f.directorSurname && f.directorSurname.trim() !== '');
+    directorSpan.textContent = withDirector.length;
 }
 
 // ---- Отрисовка таблицы ----
-async function renderTable() {
+function renderTable(items) {
+    tbody.innerHTML = '';
+    items.forEach(item => {
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = item.firmId;
+        row.insertCell(1).textContent = item.firmName;
+        row.insertCell(2).textContent = item.adress;
+        row.insertCell(3).textContent = item.directorSurname || 'не указан';
+
+        const actionsCell = row.insertCell(4);
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = '✏️'; editBtn.title = 'Редактировать';
+        editBtn.onclick = () => {
+            currentEditId = item.firmId;
+            editIdField.value = item.firmId;
+            firmNameInput.value = item.firmName;
+            adressInput.value = item.adress;
+            directorSurnameInput.value = item.directorSurname || '';
+            formTitle.textContent = 'Редактировать фирму';
+            submitBtn.textContent = 'Сохранить';
+            cancelBtn.style.display = 'inline-block';
+        };
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '🗑️'; deleteBtn.title = 'Удалить';
+        deleteBtn.onclick = () => deleteItem(item.firmId);
+
+        actionsCell.appendChild(editBtn);
+        actionsCell.appendChild(deleteBtn);
+    });
+}
+
+// ---- Вычисление Id ----
+function getNextFirmId() {
+    if (cachedFirms.length === 0) return 1;
+    const ids = cachedFirms.map(f => f.firmId).sort((a, b) => a - b);
+    let freeId = 1;
+    for (const id of ids) {
+        if (id === freeId) freeId++;
+        else if (id > freeId) break;
+    }
+    return freeId;
+}
+
+// ---- Запрос ----
+async function loadData() {
     try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const items = await response.json();
-        tbody.innerHTML = ''; // очистка
-
-        items.forEach(item => {
-            const row = tbody.insertRow();
-            row.insertCell(0).textContent = item.firmId;
-            row.insertCell(1).textContent = item.firmName;
-            row.insertCell(2).textContent = item.adress;
-            row.insertCell(3).textContent = item.directorSurname || 'не указан';
-
-            const actionsCell = row.insertCell(4);
-            const editBtn = document.createElement('button');
-            editBtn.textContent = '✏️';
-            editBtn.title = 'Редактировать';
-            editBtn.onclick = () => {
-                currentEditId = item.firmId;
-                editIdField.value = item.firmId;
-                firmNameInput.value = item.firmName;
-                adressInput.value = item.adress;
-                directorSurnameInput.value = item.directorSurname || '';
-
-                formTitle.textContent = 'Редактировать фирму';
-                submitBtn.textContent = 'Сохранить';
-                cancelBtn.style.display = 'inline-block';
-            };
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = '🗑️';
-            deleteBtn.title = 'Удалить';
-            deleteBtn.onclick = () => deleteItem(item.firmId);
-
-            actionsCell.appendChild(editBtn);
-            actionsCell.appendChild(deleteBtn);
-        });
-
-        await updateStats();
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        cachedFirms = await res.json();
+        renderTable(cachedFirms);
+        updateStats(cachedFirms);
+        errorDiv.classList.add('hidden');
     } catch (err) {
         showError(`Ошибка загрузки: ${err.message}`);
     }
 }
 
-// ---- Вычисление Id ----
-async function getFirstFreeFirmId() {
-    try {
-        const response = await fetch(API_URL);
-        if (!response.ok) return 1;
-        const items = await response.json();
-        const ids = items.map(item => item.firmId).sort((a, b) => a - b);
-        let freeId = 1;
-        for (const id of ids) {
-            if (id === freeId) freeId++;
-            else if (id > freeId) break;
-        }
-        return freeId;
-    } catch {
-        return 1;
-    }
-}
 
 // ---- Добавление нового ----
 async function createItem() {
-    const freeIdFirm = await getFirstFreeFirmId();
+    const newId = getNextFirmId();
     const newItem = {
         firmId: freeIdFirm,
         firmName: firmNameInput.value.trim(),
@@ -144,7 +135,7 @@ async function createItem() {
         }
 
         clearForm();
-        await renderTable();
+        await loadData();
         return true;
     } catch (err) {
         showError(`Не удалось добавить: ${err.message}`);
@@ -181,7 +172,7 @@ async function updateItem(id) {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         clearForm();
-        await renderTable();
+        await loadData();
         return true;
     } catch (err) {
         showError(`Ошибка обновления: ${err.message}`);
@@ -202,7 +193,7 @@ async function deleteItem(id) {
             throw new Error(`HTTP ${response.status}`);
         }
 
-        await renderTable();
+        await loadData();
     } catch (err) {
         showError(`Ошибка удаления: ${err.message}`);
     }
@@ -227,4 +218,4 @@ submitBtn.addEventListener('click', onSubmit);
 cancelBtn.addEventListener('click', onCancel);
 
 // Загружаем данные при старте
-renderTable();
+loadData();
