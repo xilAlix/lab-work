@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Variant10.Models;
+using Variant10.Services;
 
 namespace Variant10.Controllers
 {
@@ -13,32 +9,33 @@ namespace Variant10.Controllers
     [ApiController]
     public class FacturingCompaniesController : ControllerBase
     {
-        private readonly ProductContext _context;
+        private readonly FacturingCompanyService _factruningCompanyService;
 
-        public FacturingCompaniesController(ProductContext context)
+        public FacturingCompaniesController(FacturingCompanyService factruningCompanyService)
         {
-            _context = context;
+            _factruningCompanyService = factruningCompanyService;
         }
 
         // GET: api/FacturingCompanies
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FacturingCompany>>> GetFacturingCompanies()
         {
-            return await _context.FacturingCompanies.ToListAsync();
+            var result = await _factruningCompanyService.GetAllAsync();
+            return Ok(result);
         }
 
         // GET: api/FacturingCompanies/5
         [HttpGet("{id}")]
         public async Task<ActionResult<FacturingCompany>> GetFacturingCompany(int id)
         {
-            var facturingCompany = await _context.FacturingCompanies.FindAsync(id);
+            var company = await _factruningCompanyService.GetByIdAsync(id);
 
-            if (facturingCompany == null)
+            if (company == null)
             {
                 return NotFound();
             }
 
-            return facturingCompany;
+            return Ok(company);
         }
 
         // PUT: api/FacturingCompanies/5
@@ -51,17 +48,13 @@ namespace Variant10.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(facturingCompany).Property(c => c.firmId).IsModified = false;
-
-            _context.Entry(facturingCompany).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _factruningCompanyService.UpdateAsync(id, facturingCompany);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!FacturingCompanyExists(id))
+                if (!await _factruningCompanyService.ExistsAsync(id))
                 {
                     return NotFound();
                 }
@@ -79,14 +72,13 @@ namespace Variant10.Controllers
         [HttpPost]
         public async Task<ActionResult<FacturingCompany>> PostFacturingCompany(FacturingCompany facturingCompany)
         {
-            _context.FacturingCompanies.Add(facturingCompany);
             try
             {
-                await _context.SaveChangesAsync();
+                await _factruningCompanyService.CreateAsync(facturingCompany);
             }
             catch (DbUpdateException)
             {
-                if (FacturingCompanyExists(facturingCompany.firmId))
+                if (await _factruningCompanyService.ExistsAsync(facturingCompany.firmId))
                 {
                     return Conflict();
                 }
@@ -103,21 +95,15 @@ namespace Variant10.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFacturingCompany(int id)
         {
-            var facturingCompany = await _context.FacturingCompanies.FindAsync(id);
-            if (facturingCompany == null)
+            var company = await _factruningCompanyService.GetByIdAsync(id);
+            if (company == null)
             {
                 return NotFound();
             }
 
-            _context.FacturingCompanies.Remove(facturingCompany);
-            await _context.SaveChangesAsync();
+            await _factruningCompanyService.DeleteAsync(id);
 
             return NoContent();
-        }
-
-        private bool FacturingCompanyExists(int id)
-        {
-            return _context.FacturingCompanies.Any(e => e.firmId == id);
         }
     }
 }

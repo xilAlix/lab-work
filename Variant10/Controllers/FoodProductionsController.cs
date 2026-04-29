@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Variant10.Models;
+using Variant10.Services;
 
 namespace Variant10.wwwroot
 {
@@ -13,32 +9,33 @@ namespace Variant10.wwwroot
     [ApiController]
     public class FoodProductionsController : ControllerBase
     {
-        private readonly ProductContext _context;
+        private readonly FoodProductionService _foodProductionService;
 
-        public FoodProductionsController(ProductContext context)
+        public FoodProductionsController(FoodProductionService foodProductionService)
         {
-            _context = context;
+            _foodProductionService = foodProductionService;
         }
 
         // GET: api/FoodProductions
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FoodProduction>>> GetFoodProductions()
         {
-            return await _context.FoodProductions.ToListAsync();
+            var result = await _foodProductionService.GetAllAsync();
+            return Ok(result);
         }
 
         // GET: api/FoodProductions/5
         [HttpGet("{firmId}/{productId}/{productionVolume}")]
         public async Task<ActionResult<FoodProduction>> GetFoodProduction(int firmId, int productId, float productionVolume)
         {
-            var foodProduction = await _context.FoodProductions.FindAsync(firmId, productId, productionVolume);
+            var production = await _foodProductionService.GetByIdAsync(firmId, productId, productionVolume);
 
-            if (foodProduction == null)
+            if (production == null)
             {
                 return NotFound();
             }
 
-            return foodProduction;
+            return Ok(production);
         }
 
         // PUT: api/FoodProductions/5
@@ -51,19 +48,13 @@ namespace Variant10.wwwroot
                 return BadRequest();
             }
 
-            _context.Entry(foodProduction).Property(p => p.firmId).IsModified = false;
-            _context.Entry(foodProduction).Property(p => p.productId).IsModified = false;
-            _context.Entry(foodProduction).Property(p => p.productionVolume).IsModified = false;
-
-            _context.Entry(foodProduction).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _foodProductionService.UpdateAsync(firmId, productId, productionVolume, foodProduction);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!FoodProductionExists(firmId, productId, productionVolume))
+                if (!await _foodProductionService.ExistsAsync(firmId, productId, productionVolume))
                 {
                     return NotFound();
                 }
@@ -81,14 +72,13 @@ namespace Variant10.wwwroot
         [HttpPost]
         public async Task<ActionResult<FoodProduction>> PostFoodProduction(FoodProduction foodProduction)
         {
-            _context.FoodProductions.Add(foodProduction);
             try
             {
-                await _context.SaveChangesAsync();
+                await _foodProductionService.CreateAsync(foodProduction);
             }
             catch (DbUpdateException)
             {
-                if (FoodProductionExists(foodProduction.firmId, foodProduction.productId, foodProduction.productionVolume))
+                if (await _foodProductionService.ExistsAsync(foodProduction.firmId, foodProduction.productId, foodProduction.productionVolume))
                 {
                     return Conflict();
                 }
@@ -105,21 +95,14 @@ namespace Variant10.wwwroot
         [HttpDelete("{firmId}/{productId}/{productionVolume}")]
         public async Task<IActionResult> DeleteFoodProduction(int firmId, int productId, float productionVolume)
         {
-            var foodProduction = await _context.FoodProductions.FindAsync(firmId, productId, productionVolume);
-            if (foodProduction == null)
+            var production = await _foodProductionService.GetByIdAsync(firmId, productId, productionVolume);
+            if (production == null)
             {
                 return NotFound();
             }
 
-            _context.FoodProductions.Remove(foodProduction);
-            await _context.SaveChangesAsync();
-
+            await _foodProductionService.DeleteAsync(firmId, productId, productionVolume);
             return NoContent();
-        }
-
-        private bool FoodProductionExists(int firmId, int productId, float productionVolume)
-        {
-            return _context.FoodProductions.Any(e => e.firmId == firmId && e.productId == productId && e.productionVolume == productionVolume);
         }
     }
 }

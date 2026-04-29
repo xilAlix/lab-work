@@ -7,6 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ProductContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
+// Добавление сервисов
+builder.Services.AddScoped<FoodProductService>();
+builder.Services.AddScoped<FacturingCompanyService>();
+builder.Services.AddScoped<FoodProductionService>();
+
 // Add services to the container.
 
 builder.Services.AddControllers();

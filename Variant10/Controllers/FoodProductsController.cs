@@ -1,10 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Variant10.Models;
 using Variant10.Services;
 
@@ -14,12 +9,10 @@ namespace Variant10.Controllers
     [ApiController]
     public class FoodProductsController : ControllerBase
     {
-        private readonly ProductContext _context;
         private readonly FoodProductService _foodProductService;
 
-        public FoodProductsController(ProductContext context, FoodProductService foodProductService)
+        public FoodProductsController(FoodProductService foodProductService)
         {
-            _context = context;
             _foodProductService = foodProductService;
         }
 
@@ -30,22 +23,22 @@ namespace Variant10.Controllers
             [FromQuery] string? group = null,
             [FromQuery] string? sortBy = null)
         {
-            var products = await _foodProductService.GetFilteredProductsAsync(minId, group, sortBy);
-            return Ok(products);
+            var result = await _foodProductService.GetAllFilteredAsync(minId, group, sortBy);
+            return Ok(result);
         }
 
         // GET: api/FoodProducts/5
         [HttpGet("{id}")]
         public async Task<ActionResult<FoodProduct>> GetFoodProduct(int id)
         {
-            var foodProduct = await _context.FoodProducts.FindAsync(id);
+            var product = await _foodProductService.GetByIdAsync(id);
 
-            if (foodProduct == null)
+            if (product == null)
             {
                 return NotFound();
             }
 
-            return foodProduct;
+            return Ok(product);
         }
 
         // PUT: api/FoodProducts/5
@@ -58,17 +51,13 @@ namespace Variant10.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(foodProduct).Property(p => p.id).IsModified = false;
-
-            _context.Entry(foodProduct).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _foodProductService.UpdateAsync(id, foodProduct);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!FoodProductExists(id))
+                if (!await _foodProductService.ExistsAsync(id))
                 {
                     return NotFound();
                 }
@@ -86,14 +75,14 @@ namespace Variant10.Controllers
         [HttpPost]
         public async Task<ActionResult<FoodProduct>> PostFoodProduct(FoodProduct foodProduct)
         {
-            _context.FoodProducts.Add(foodProduct);
+
             try
             {
-                await _context.SaveChangesAsync();
+                await _foodProductService.CreateAsync(foodProduct);
             }
             catch (DbUpdateException)
             {
-                if (FoodProductExists(foodProduct.id))
+                if (await _foodProductService.ExistsAsync(foodProduct.id))
                 {
                     return Conflict();
                 }
@@ -110,21 +99,14 @@ namespace Variant10.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFoodProduct(int id)
         {
-            var foodProduct = await _context.FoodProducts.FindAsync(id);
-            if (foodProduct == null)
+            var product = await _foodProductService.GetByIdAsync(id);
+            if (product == null)
             {
                 return NotFound();
             }
 
-            _context.FoodProducts.Remove(foodProduct);
-            await _context.SaveChangesAsync();
-
+            await _foodProductService.DeleteAsync(id);
             return NoContent();
-        }
-
-        private bool FoodProductExists(int id)
-        {
-            return _context.FoodProducts.Any(e => e.id == id);
         }
     }
 }
