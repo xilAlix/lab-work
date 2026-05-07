@@ -10,16 +10,26 @@ namespace Variant10.Controllers
     public class FacturingCompaniesController : ControllerBase
     {
         private readonly FacturingCompanyService _factruningCompanyService;
+        private readonly MainService _mainService;
 
-        public FacturingCompaniesController(FacturingCompanyService factruningCompanyService)
+        public FacturingCompaniesController(FacturingCompanyService factruningCompanyService,
+                                            MainService mainService)
         {
             _factruningCompanyService = factruningCompanyService;
+            _mainService = mainService;
         }
 
         // GET: api/FacturingCompanies
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FacturingCompany>>> GetFacturingCompanies()
+        public async Task<ActionResult<IEnumerable<FacturingCompany>>> GetFacturingCompanies(
+            [FromQuery] string? hasBakery = null)
         {
+            if (hasBakery == "true")
+            {
+                var filtred = await _mainService.GetCompaniesWithBakeryProductsAsync();
+                return Ok(filtred);
+            }
+
             var result = await _factruningCompanyService.GetAllAsync();
             return Ok(result);
         }

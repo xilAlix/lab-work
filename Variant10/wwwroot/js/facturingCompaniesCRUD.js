@@ -213,7 +213,39 @@ function onCancel() {
     clearForm();
 }
 
+// ---- Фильтры ----
+async function applyFilters() {
+    const hasBakery = document.getElementById('filter-has-bakery').checked;
+
+    const params = new URLSearchParams();
+    if (hasBakery) {
+        params.append('hasBakery', 'true');
+    }
+
+    const url = params.toString() ? `${API_URL}?${params}` : API_URL;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const items = await response.json();
+
+        renderTable(items);
+        updateStats(items);
+        errorDiv.classList.add('hidden');
+    } catch (err) {
+        showError(`Ошибка фильтрации: ${err.message}`);
+    }
+}
+
+function resetFilters() {
+    document.getElementById('filter-has-bakery').checked = false;
+    loadData();
+}
+
 // ---- Инициализация и обработчики событий ----
+document.getElementById('apply-filters').addEventListener('click', applyFilters);
+document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
 submitBtn.addEventListener('click', onSubmit);
 cancelBtn.addEventListener('click', onCancel);
 

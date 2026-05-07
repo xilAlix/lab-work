@@ -11,6 +11,7 @@ builder.Services.AddDbContext<ProductContext>(options => options.UseNpgsql(build
 builder.Services.AddScoped<FoodProductService>();
 builder.Services.AddScoped<FacturingCompanyService>();
 builder.Services.AddScoped<FoodProductionService>();
+builder.Services.AddScoped<MainService>();
 
 // Add services to the container.
 

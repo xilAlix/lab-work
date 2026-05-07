@@ -31,6 +31,23 @@
 
     <div id="error-message" class="error hidden"></div>
 
+    <!-- Фильтры -->
+    <div class="filters-card">
+        <h4>Фильтры</h4>
+
+        <div class="filter-group">
+            <label>
+                <input type="checkbox" id="filter-has-bakery">
+                Только компании с хлебобулочными изделиями
+            </label>
+        </div>
+
+        <div class="filter-actions">
+            <button id="apply-filters" class="btn-primary">Применить</button>
+            <button id="reset-filters" class="btn-secondary">Сбросить</button>
+        </div>
+    </div>
+
     <!-- Таблица с данными -->
     <table id="data-table">
         <thead>
