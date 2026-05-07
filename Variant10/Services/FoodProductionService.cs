@@ -12,9 +12,16 @@ public class FoodProductionService
         _context = context;
     }
 
-    public async Task<IEnumerable<FoodProduction>> GetAllAsync()
+    public async Task<IEnumerable<object>> GetAllAsync()
     {
-        return await _context.FoodProductions.ToListAsync();
+        return await _context.FoodProductions
+            .Select(fp => new
+            {
+                firmDisplay = $"{fp.firmId} ({fp.firmIdNavigation.firmName})",
+                productDisplay = $"{fp.productId} ({fp.productIdNavigation.title})",
+                productionVolume = fp.productionVolume
+            })
+            .ToListAsync();
     }
 
     public async Task<FoodProduction?> GetByIdAsync(int firmId, int productId, float productionVolume)

@@ -57,8 +57,8 @@ function renderTable(items) {
 
     items.forEach(item => {
         const row = tbody.insertRow();
-        row.insertCell(0).textContent = item.firmId;
-        row.insertCell(1).textContent = item.productId;
+        row.insertCell(0).textContent = item.firmDisplay;
+        row.insertCell(1).textContent = item.productDisplay;
         row.insertCell(2).textContent = item.productionVolume;
 
         const actionsCell = row.insertCell(3);
