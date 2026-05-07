@@ -104,5 +104,20 @@ namespace Variant10.wwwroot
             await _foodProductionService.DeleteAsync(firmId, productId, productionVolume);
             return NoContent();
         }
+        [HttpGet("filter")]
+        public async Task<IActionResult> Filter(
+            int? firmId,
+            int? productId,
+            int? minVolume,
+            int? maxVolume)
+        {
+            var result = await _foodProductionService.FilterAsync(
+                firmId,
+                productId,
+                minVolume,
+                maxVolume);
+
+            return Ok(result);
+        }
     }
 }

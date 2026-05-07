@@ -54,4 +54,38 @@ public class FoodProductionService
             await _context.SaveChangesAsync();
         }
     }
+        public async Task<List<FoodProduction>> FilterAsync(
+        int? firmId,
+        int? productId,
+        int? minVolume,
+        int? maxVolume)
+    {
+        var query = _context.FoodProductions.AsQueryable();
+
+        if (firmId.HasValue)
+        {
+            query = query.Where(x =>
+                x.FirmId == firmId.Value);
+        }
+
+        if (productId.HasValue)
+        {
+            query = query.Where(x =>
+                x.ProductId == productId.Value);
+        }
+
+        if (minVolume.HasValue)
+        {
+            query = query.Where(x =>
+                x.ProductionVolume >= minVolume.Value);
+        }
+
+        if (maxVolume.HasValue)
+        {
+            query = query.Where(x =>
+                x.ProductionVolume <= maxVolume.Value);
+        }
+
+        return await query.ToListAsync();
+    }
 }

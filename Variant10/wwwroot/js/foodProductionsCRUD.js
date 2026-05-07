@@ -217,6 +217,29 @@ function onCancel() {
     clearForm();
 }
 
+async function applyFilter() {
+
+    const firmId =
+        document.getElementById('firmIdFilter').value;
+
+    const productId =
+        document.getElementById('productIdFilter').value;
+
+    const minVolume =
+        document.getElementById('minVolume').value;
+
+    const maxVolume =
+        document.getElementById('maxVolume').value;
+
+    const response = await fetch(
+        `/api/FoodProductions/filter?firmId=${firmId}&productId=${productId}&minVolume=${minVolume}&maxVolume=${maxVolume}`
+    );
+
+    const data = await response.json();
+
+    renderTable(data);
+    }
+    
 // ---- Инициализация и обработчики событий ----
 submitBtn.addEventListener('click', onSubmit);
 cancelBtn.addEventListener('click', onCancel);

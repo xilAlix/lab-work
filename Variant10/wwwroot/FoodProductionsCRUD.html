@@ -32,6 +32,28 @@
 
     <div id="error-message" class="error hidden"></div>
 
+    <div class="filter-panel">
+    <input type="number"
+           id="firmIdFilter"
+           placeholder="Firm ID">
+
+    <input type="number"
+           id="productIdFilter"
+           placeholder="Product ID">
+
+    <input type="number"
+           id="minVolume"
+           placeholder="Min Volume">
+
+    <input type="number"
+           id="maxVolume"
+           placeholder="Max Volume">
+
+    <button onclick="applyFilter()">
+        Apply Filter
+    </button>
+    </div>
+    
     <!-- Таблица с данными -->
     <table id="data-table">
         <thead>
