@@ -104,5 +104,21 @@ namespace Variant10.wwwroot
             await _foodProductionService.DeleteAsync(firmId, productId, productionVolume);
             return NoContent();
         }
+
+        // GET: api/FoodProductions/statistics
+        [HttpGet("statistics")] //+
+        public async Task<IActionResult> GetStatistics()
+        {
+            var stats = await _foodProductionService.GetStatisticsAsync();
+            return Ok(stats);
+        }
+
+        // GET: api/FoodProductions/logs
+        [HttpGet("logs")]
+        public async Task<IActionResult> GetLogs(int limit = 50)
+        {
+            var logs = await _foodProductionService.GetLogsAsync(limit);
+            return Ok(logs);
+        }
     }
 }

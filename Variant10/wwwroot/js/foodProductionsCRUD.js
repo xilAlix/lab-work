@@ -40,15 +40,11 @@ function clearForm() {
 }
 
 // ---- Статистика ----
-function updateStats(items) {
-    totalSpan.textContent = items.length;
-    if (items.length > 0) {
-        const sum = items.reduce((acc, cur) => acc + cur.productionVolume, 0);
-        avgVolumeSpan.textContent = (sum / items.length).toFixed(2);
-    }
-    else {
-        avgVolumeSpan.textContent = '0';
-    }
+async function updateStats() {
+    const res = await fetch(`${API_URL}/statistics`);
+    const stats = await res.json();
+    totalSpan.textContent = stats.total || 0;
+    avgVolumeSpan.textContent = stats.total > 0 ? (stats.totalVolume / stats.total).toFixed(2) : '0';
 }
 
 // ---- Отрисовка таблицы ----
@@ -100,7 +96,7 @@ async function loadData() {
         const items = await response.json();
 
         renderTable(items);
-        updateStats(items);
+        updateStats();
         errorDiv.classList.add('hidden');
     } catch (err) {
         showError(`Ошибка загрузки: ${err.message}`);
@@ -217,7 +213,22 @@ function onCancel() {
     clearForm();
 }
 
+// ---- Логи ----
+async function showLogs() {
+    try {
+        const res = await fetch(`${API_URL}/logs`);
+        const logs = await res.json();
+        document.getElementById('logs-content').textContent = JSON.stringify(logs, null, 2);
+        document.getElementById('logs-container').style.display = 'block';
+    } catch (err) {
+        showError(`Ошибка логов: ${err.message}`);
+    }
+}
+
+
 // ---- Инициализация и обработчики событий ----
+document.getElementById('show-logs-btn').addEventListener('click', showLogs);
+
 submitBtn.addEventListener('click', onSubmit);
 cancelBtn.addEventListener('click', onCancel);
 

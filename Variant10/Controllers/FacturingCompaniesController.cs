@@ -115,5 +115,21 @@ namespace Variant10.Controllers
 
             return NoContent();
         }
+
+        // GET: api/FacturingCompanies/statistics
+        [HttpGet("statistics")]
+        public async Task<IActionResult> GetStatistics() 
+        {
+            var stats = await _factruningCompanyService.GetStatisticsAsync();
+            return Ok(stats);
+        }
+
+        // GET: api/FacturingCompanies/logs
+        [HttpGet("logs")]
+        public async Task<IActionResult> GetLogs(int limit = 50)
+        {
+            var logs = await _factruningCompanyService.GetLogsAsync(limit); 
+            return Ok(logs);
+        }
     }
 }

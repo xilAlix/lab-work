@@ -36,10 +36,11 @@ function clearForm() {
 }
 
 // ---- Статистика ----
-function updateStats(items) {
-    totalSpan.textContent = items.length;
-    const withPackage = items.filter(p => p.packageType && p.packageType.trim() !== '');
-    packageSpan.textContent = withPackage.length;
+async function updateStats() {
+    const res = await fetch(`${API_URL}/statistics`);
+    const stats = await res.json();
+    totalSpan.textContent = stats.total || 0;
+    packageSpan.textContent = stats.withPackage || 0;
 }
 
 // ---- Отрисовка таблицы ----
@@ -95,7 +96,7 @@ async function loadData() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         cachedProducts = await res.json();
         renderTable(cachedProducts);
-        updateStats(cachedProducts);
+        updateStats();
         errorDiv.classList.add('hidden');
     } catch (err) {
         showError(`Ошибка загрузки: ${err.message}`);
@@ -107,7 +108,7 @@ async function loadData() {
 async function createItem() {
     const newId = getNextProductId();
     const newItem = {
-        id: freeIdProduct,
+        id: newId,
         title: titleInput.value.trim(),
         productGroup: productGroupInput.value.trim(),
         packageType: packageTypeInput.value.trim() || null
@@ -232,7 +233,7 @@ async function applyFilters() {
         const items = await res.json();
 
         renderTable(items);   
-        updateStats(items);  
+        updateStats();  
     } catch (err) {
         showError(`Ошибка: ${err.message}`);
     }
@@ -245,9 +246,22 @@ function resetFilters() {
     loadData();
 }
 
+// ---- Логи ----
+async function showLogs() {
+    try {
+        const res = await fetch(`${API_URL}/logs`);
+        const logs = await res.json();
+        document.getElementById('logs-content').textContent = JSON.stringify(logs, null, 2);
+        document.getElementById('logs-container').style.display = 'block';
+    } catch (err) {
+        showError(`Ошибка логов: ${err.message}`);
+    }
+}
+
 // ---- Инициализация и обработчики событий ----
 document.getElementById('apply-filters').addEventListener('click', applyFilters);
 document.getElementById('reset-filters').addEventListener('click', resetFilters);
+document.getElementById('show-logs-btn').addEventListener('click', showLogs);
 
 submitBtn.addEventListener('click', onSubmit);
 cancelBtn.addEventListener('click', onCancel);

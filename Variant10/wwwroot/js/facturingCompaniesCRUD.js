@@ -36,10 +36,11 @@ function clearForm() {
 }
 
 // ---- Статистика ----
-function updateStats(items) {
-    totalSpan.textContent = items.length;
-    const withDirector = items.filter(f => f.directorSurname && f.directorSurname.trim() !== '');
-    directorSpan.textContent = withDirector.length;
+async function updateStats() {
+    const res = await fetch(`${API_URL}/statistics`);
+    const stats = await res.json();
+    totalSpan.textContent = stats.total || 0;
+    directorSpan.textContent = stats.withDirector || 0;
 }
 
 // ---- Отрисовка таблицы ----
@@ -95,7 +96,7 @@ async function loadData() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         cachedFirms = await res.json();
         renderTable(cachedFirms);
-        updateStats(cachedFirms);
+        updateStats();
         errorDiv.classList.add('hidden');
     } catch (err) {
         showError(`Ошибка загрузки: ${err.message}`);
@@ -107,7 +108,7 @@ async function loadData() {
 async function createItem() {
     const newId = getNextFirmId();
     const newItem = {
-        firmId: freeIdFirm,
+        firmId: newId,
         firmName: firmNameInput.value.trim(),
         adress: adressInput.value.trim(),
         directorSurname: directorSurnameInput.value.trim() || null
@@ -230,7 +231,7 @@ async function applyFilters() {
         const items = await response.json();
 
         renderTable(items);
-        updateStats(items);
+        updateStats();
         errorDiv.classList.add('hidden');
     } catch (err) {
         showError(`Ошибка фильтрации: ${err.message}`);
@@ -242,9 +243,22 @@ function resetFilters() {
     loadData();
 }
 
+// ---- Логи ----
+async function showLogs() {
+    try {
+        const res = await fetch(`${API_URL}/logs`);
+        const logs = await res.json();
+        document.getElementById('logs-content').textContent = JSON.stringify(logs, null, 2);
+        document.getElementById('logs-container').style.display = 'block';
+    } catch (err) {
+        showError(`Ошибка логов: ${err.message}`);
+    }
+}
+
 // ---- Инициализация и обработчики событий ----
 document.getElementById('apply-filters').addEventListener('click', applyFilters);
 document.getElementById('reset-filters').addEventListener('click', resetFilters);
+document.getElementById('show-logs-btn').addEventListener('click', showLogs);
 
 submitBtn.addEventListener('click', onSubmit);
 cancelBtn.addEventListener('click', onCancel);

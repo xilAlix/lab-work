@@ -17,6 +17,8 @@ public class FoodProductionService
         return await _context.FoodProductions
             .Select(fp => new
             {
+                firmId = fp.firmId,
+                productId = fp.productId,
                 firmDisplay = $"{fp.firmId} ({fp.firmIdNavigation.firmName})",
                 productDisplay = $"{fp.productId} ({fp.productIdNavigation.title})",
                 productionVolume = fp.productionVolume
@@ -26,7 +28,8 @@ public class FoodProductionService
 
     public async Task<FoodProduction?> GetByIdAsync(int firmId, int productId, float productionVolume)
     {
-        return await _context.FoodProductions.FindAsync(firmId, productId, productionVolume);
+        var rows = await _context.FoodProductions.FromSqlRaw("SELECT * FROM get_foodproduction_by_id({0}, {1}, {2}::real)", firmId, productId, productionVolume).ToListAsync(); 
+        return rows.FirstOrDefault();
     }
 
     public async Task<bool> ExistsAsync(int firmId, int productId, float productionVolume)
@@ -39,26 +42,34 @@ public class FoodProductionService
 
     public async Task CreateAsync(FoodProduction entity)
     {
-        _context.FoodProductions.Add(entity);
-        await _context.SaveChangesAsync();
+        await _context.Database.ExecuteSqlRawAsync(
+            "SELECT add_foodproduction({0}, {1}, {2}::real)", 
+            entity.firmId, entity.productId, entity.productionVolume);
     }
 
     public async Task UpdateAsync(int firmId, int productId, float productionVolume, FoodProduction entity)
     {
-        _context.Entry(entity).Property(p => p.firmId).IsModified = false;
-        _context.Entry(entity).Property(p => p.productId).IsModified = false;
-        _context.Entry(entity).Property(p => p.productionVolume).IsModified = false;
-        _context.Entry(entity).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
+        await _context.Database.ExecuteSqlRawAsync( 
+            "SELECT update_foodproduction({0}, {1}, {2}::real)", 
+            firmId, productId, productionVolume); 
     }
 
     public async Task DeleteAsync(int firmId, int productId, float productionVolume)
     {
-        var entity = await GetByIdAsync(firmId, productId, productionVolume);
-        if (entity != null)
-        {
-            _context.FoodProductions.Remove(entity);
-            await _context.SaveChangesAsync();
-        }
+        await _context.Database.ExecuteSqlRawAsync("SELECT delete_foodproduction({0}, {1}, {2}::real)", firmId, productId, productionVolume); 
     }
+
+    public async Task<string> GetStatisticsAsync() 
+    { 
+        var statsJson = await _context.Database.SqlQueryRaw<string>("SELECT get_foodproductions_statistics()").ToListAsync(); 
+        return statsJson.First(); 
+    } 
+
+    public async Task<string> GetLogsAsync(int limit = 50)
+    { 
+        var logs = await _context.Database 
+            .SqlQueryRaw<string>($"SELECT json_agg(l ORDER BY l.id DESC) FROM foodproductions_log l LIMIT {limit}") 
+            .ToListAsync(); 
+        return logs.FirstOrDefault() ?? "[]"; 
+    } 
 }
